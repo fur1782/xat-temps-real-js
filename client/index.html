@@ -7,23 +7,46 @@
     <script type="module">
         import {io} from 'https://cdn.socket.io/4.5.0/socket.io.esm.min.js';
 
-        const socket = io();
+        const getUsername = async () => {
+            const username = localStorage.getItem('username');
+            if (username) {
+                console.log('Username found in localStorage:', username);
+                return username;
+            }
+            
+            const res = await fetch('https://randomuser.me/api/');
+            const result = await res.json();
+            const randomUsername = result.results[0].login.username;
+            
+            localStorage.setItem('username', randomUsername);
+            return randomUsername;
+        };
+
+        const socket = io({
+            auth: {
+                username: await getUsername(),
+                serverOffset: 0
+            }
+        });
 
         const form = document.getElementById('form');
         const input = document.getElementById('input');
         const messages = document.getElementById('messages');
 
-        form.addEventListener('submit', (event) => {
+        form.addEventListener('submit', async (event) => {
             event.preventDefault();
             if (input.value) {
-                socket.emit('chat message', input.value);
+                socket.emit('chat message', input.value, await getUsername());
                 input.value = '';
             }
         });
 
-        socket.on('chat message', (msg) => {
+        socket.on('chat message', (msg, serverOffset, username) => {
             const item = document.createElement('li');
-            item.textContent = msg;
+            const small = document.createElement('small');
+            small.textContent = username
+            item.innerHTML = `<p>${msg}</p>`;
+            item.appendChild(small);
             messages.appendChild(item);
         });
     </script>
@@ -91,6 +114,20 @@
         #form > button:hover {
             background-color: #0077cc;
             cursor: pointer;
+        }
+
+        #messages {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #messages>li {
+            padding: .5rem 1rem;
+        }
+
+        #messages>li:nth-child(odd) {
+            background-color: #000;
         }
     </style>
 </head>
