@@ -48,6 +48,7 @@
             item.innerHTML = `<p>${msg}</p>`;
             item.appendChild(small);
             messages.appendChild(item);
+            messages.scrollTop = messages.scrollHeight;
         });
     </script>
     <style>
@@ -120,6 +121,11 @@
             list-style-type: none;
             margin: 0;
             padding: 0;
+            overflow-y: scroll;
+            height: 100%;
+            scroll-behavior: smooth;
+            padding-bottom: 48px;
+
         }
 
         #messages>li {
